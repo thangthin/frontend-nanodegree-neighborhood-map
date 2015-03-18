@@ -5,6 +5,7 @@ var mapProp = {
     zoom: 13,
     mapTypeId: google.maps.MapTypeId.ROADMAP 
   }; 
+
 // Initialize map with default city marker
 function initialize() {
   var map = new google.maps.Map(document.getElementById("googleMap"),mapProp);
@@ -33,6 +34,17 @@ function initialize() {
 
 // Load map on page load
 google.maps.event.addDomListener(window, 'load', initialize);
+
+function AppViewModel(){
+  this.places = ko.observable(
+    ["test","vancouver","seattle",
+      "portland","montreal","toronto",
+      "san francisco"
+    ]);
+
+}
+
+ko.applyBindings(new AppViewModel);
 
 
 

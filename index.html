@@ -19,8 +19,8 @@
       </div>
       <!-- List for app -->
       <div class='place-list'>
-        <ul>
-          <li>Test</li>
+        <ul data-bind="foreach: places">
+          <li data-bind="text: $data"></li>
         </ul>
       </div>
       <!-- map for app -->
