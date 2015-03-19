@@ -7,8 +7,8 @@ function AppViewModel() {
         {name: "Fenway Park",address: "4 Yawkey Way, Boston, MA 02215",type: "landmark"}, 
         {name: "Boston Public Garden",address: "69 Beacon St., Boston, MA 02108",type: "landmark"}, 
         {name: "Boston Public Library",address: "700 Boylston St., At Copley Sq., Boston, MA 02116",type: "landmark"},
-        {},
-        {}
+        {name: "JFK Library", address: "Columbia Point, Boston, MA 02125", type:"landmark"},
+        {name: "Boston Tea Party Ships and Museum", address:"Congress Street Bridge, Boston, MA 02210", type:"landmark"}
     ];
 
     this.places = ko.observable([]);
