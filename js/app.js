@@ -73,7 +73,9 @@ $(document).ready(function(){
             });
         };
 
-        self.sets_initial_markers(self.places());
+        self.live_places = ko.observableArray(self.places());
+
+        self.sets_initial_markers(self.live_places());
 
         // helper functions
         self.findPlaces = function(searchValue,source,option){
@@ -109,6 +111,7 @@ $(document).ready(function(){
             //search places array for match
             var results = self.findPlaces(searchValue,self.places,true);
             var removals = self.findPlaces(searchValue,self.places,false);
+            self.live_places(results);
             // remove marker of places not in results
             self.remove_markers(removals);
             // place mapper of new search
