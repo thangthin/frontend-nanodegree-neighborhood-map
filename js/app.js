@@ -44,52 +44,79 @@ $(document).ready(function(){
         google.maps.event.addDomListener(window, 'load', initialize);
 
         //makes marker for every place in places
-        self.places().forEach(function(place){
-          $.getJSON("https://maps.googleapis.com/maps/api/geocode/json?address="+place.address()+"&region=us",{},function(data){
-            //parse for place of interest latitude and longitude to set up google map marker
-            var dataLat = data.results[0].geometry.location.lat;
-            var dataLng = data.results[0].geometry.location.lng;
-            var googleMapsLatLng = new google.maps.LatLng(dataLat,dataLng);
-            var marker = new google.maps.Marker({
-              position: googleMapsLatLng
-              // animates marker to draw user attention
-              // TODO: hook animation to selected list item
-              // animation:google.maps.Animation.BOUNCE
-            });
-            marker.setMap(self.map);
-            // sets marker to listen for click
-            // opens InfoWindow when clicked on
-            var infowindow = new google.maps.InfoWindow({
-              content: "hello"
-            });
-            // add evet listener for click
-            google.maps.event.addListener(marker, 'click', function() {
-                infowindow.open(self.map, marker);
-            });
+        self.sets_initial_markers = function(places){
+            places.forEach(function(place){
+                $.getJSON("https://maps.googleapis.com/maps/api/geocode/json?address="+place.address()+"&region=us",{},function(data){
+                //parse for place of interest latitude and longitude to set up google map marker
+                var dataLat = data.results[0].geometry.location.lat;
+                var dataLng = data.results[0].geometry.location.lng;
+                place.googleMapsLatLng = new google.maps.LatLng(dataLat,dataLng);
+                place.marker = new google.maps.Marker({
+                  position: place.googleMapsLatLng
+                  // animates marker to draw user attention
+                  // TODO: hook animation to selected list item
+                  // animation:google.maps.Animation.BOUNCE
+                });
+                place.marker.setMap(self.map);
+                // sets marker to listen for click
+                // opens InfoWindow when clicked on
+                var infowindow = new google.maps.InfoWindow({
+                  content: "hello"
+                });
+                // add evet listener for click
+                google.maps.event.addListener(place.marker, 'click', function() {
+                    infowindow.open(self.map,place.marker);
+                });
 
-          });
-          
-        })
+              });
+              
+            });
+        };
+
+        self.sets_initial_markers(self.places());
 
         // helper functions
-        self.findPlaces = function(searchValue,source){
-            var result = source().filter(function(place){
-                var pattern = new RegExp(searchValue,"gi");
-                return place.name().match(pattern);
-            });
+        self.findPlaces = function(searchValue,source,option){
+            var pattern = new RegExp(searchValue,"gi");
+            if (option){
+                var result = source().filter(function(place){
+                    return place.name().match(pattern);
+                });
+            }else{
+                var result = source().filter(function(place){
+                    return !(place.name().match(pattern));
+                });
+            }
             return result;
         }
+
+        self.remove_markers = function(places){
+            places.forEach(function(place){
+                place.marker.setMap(null);
+            });
+        };
+
+        self.place_markers = function(places){
+            places.forEach(function(place){
+                place.marker.setMap(self.map);
+            });
+        };
 
         // Implement search functionality
         var $input = $("input");
         $input.keyup(function(){
-            var searchValue = $input.val()
-            console.log(searchValue);
+            var searchValue = $input.val();
             //search places array for match
-            var results = self.findPlaces(searchValue,self.places);
-            console.log(results);
-            console.log(results[0].name());
+            var results = self.findPlaces(searchValue,self.places,true);
+            var removals = self.findPlaces(searchValue,self.places,false);
+            // remove marker of places not in results
+            self.remove_markers(removals);
+            // place mapper of new search
+            self.place_markers(results);
             //show the results in div
+            
+            console.log("results: ",results);
+            console.log("removals: ",removals);
         })
 
     //End of AppViewModel
