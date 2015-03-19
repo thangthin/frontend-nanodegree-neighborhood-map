@@ -23,18 +23,24 @@ html, body {
 .header {
 	position: absolute;
 	z-index: 1;
+	right: 0;
 }
 
 .search-bar {
 	position: absolute;
 	z-index: 1;
 	top: 60px;
-	left: 0;
+	right: 0;
 }
 
 .place-list {
 	position: absolute;
 	z-index: 1;
 	top: 100px;
-	left: 0;
+	right: 0;
+	text-align: right;
+}
+
+ul {
+	list-style-type: none;
 }
