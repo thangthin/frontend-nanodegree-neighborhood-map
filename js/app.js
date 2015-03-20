@@ -60,12 +60,12 @@ $(document).ready(function() {
                     place.marker.setMap(self.map);
                     // sets marker to listen for click
                     // opens InfoWindow when clicked on
-                    var infowindow = new google.maps.InfoWindow({
+                    place.infoWindow = new google.maps.InfoWindow({
                         content: place.name()
                     });
                     // add evet listener for click
                     google.maps.event.addListener(place.marker, 'click', function() {
-                        infowindow.open(self.map, place.marker);
+                        place.infoWindow.open(self.map, place.marker);
                         place.marker.setAnimation(google.maps.Animation.BOUNCE);
                         setTimeout(function(){
                           place.marker.setAnimation(null);
@@ -82,7 +82,9 @@ $(document).ready(function() {
         self.sets_initial_markers(self.live_places());
 
         self.animateMarker = function(data){
-          alert(data.name());
+          // open infowindow
+          data.infoWindow.open(self.map,data.marker);
+          // sets animation for 2 seconds
           data.marker.setAnimation(google.maps.Animation.BOUNCE);
           setTimeout(function(){
             data.marker.setAnimation(null);
