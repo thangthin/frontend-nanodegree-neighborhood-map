@@ -90,6 +90,7 @@ $(document).ready(function() {
             data.marker.setAnimation(null);
           },2000);
         }
+        // Implement search functionality
         // helper functions
         self.findPlaces = function(searchValue, source, option) {
             var pattern = new RegExp(searchValue, "gi");
@@ -117,9 +118,28 @@ $(document).ready(function() {
             });
         };
 
-        // Implement search functionality
+        // prevent propagation
+        $("input").bind("keypress", function (e) {
+          if (e.keyCode == 13) {
+            return false;
+          }
+        });
+
         var $input = $("input");
-        $input.keyup(function() {
+
+        $input.keyup(function(e) {
+          var key = e.which;
+          //Check to see if user hit enter
+          if(key === 13){
+            if(self.live_places()[0]){
+              var selected = self.live_places()[0]
+              self.animateMarker(selected);
+            }else{
+              //// TODO: Implement new search beyond initial list
+              console.log("search returned no results");
+            }
+            
+          }else{
             var searchValue = $input.val();
             //search places array for match
             var results = self.findPlaces(searchValue, self.places, true);
@@ -129,10 +149,10 @@ $(document).ready(function() {
             self.remove_markers(removals);
             // place mapper of new search
             self.place_markers(results);
-            //show the results in div
-            
+            // TODO: REMOVE ALL CONSOLE.LOG
             console.log("results: ", results);
             console.log("removals: ", removals);
+          }
         })
 
     //End of AppViewModel
