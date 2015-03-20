@@ -61,11 +61,15 @@ $(document).ready(function() {
                     // sets marker to listen for click
                     // opens InfoWindow when clicked on
                     var infowindow = new google.maps.InfoWindow({
-                        content: "hello"
+                        content: place.name()
                     });
                     // add evet listener for click
                     google.maps.event.addListener(place.marker, 'click', function() {
                         infowindow.open(self.map, place.marker);
+                        place.marker.setAnimation(google.maps.Animation.BOUNCE);
+                        setTimeout(function(){
+                          place.marker.setAnimation(null);
+                        },2000);
                     });
                 
                 });
@@ -77,6 +81,13 @@ $(document).ready(function() {
         
         self.sets_initial_markers(self.live_places());
 
+        self.animateMarker = function(data){
+          alert(data.name());
+          data.marker.setAnimation(google.maps.Animation.BOUNCE);
+          setTimeout(function(){
+            data.marker.setAnimation(null);
+          },2000);
+        }
         // helper functions
         self.findPlaces = function(searchValue, source, option) {
             var pattern = new RegExp(searchValue, "gi");
