@@ -114,6 +114,7 @@ $(document).ready(function() {
         
         self.place_markers = function(places) {
             places.forEach(function(place) {
+                place.infoWindow.close();
                 place.marker.setMap(self.map);
             });
         };
