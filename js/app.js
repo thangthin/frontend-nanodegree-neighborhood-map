@@ -1,5 +1,6 @@
 $(document).ready(function() {
     // place holder for initial model
+
     var initial_places = [
         {name: "Fenway Park",address: "4 Yawkey Way, Boston, MA 02215",type: "landmark"}, 
         {name: "Boston Public Garden",address: "69 Beacon St., Boston, MA 02108",type: "landmark"}, 
@@ -14,34 +15,41 @@ $(document).ready(function() {
         this.type = ko.observable(data.type);
     }
 
+    var GMap = function(data){
+        var self = this;
+        self.city = data.city;
+        self.mapProperties = data.mapProperties;
+        self.initialize = function(elem){
+            self.map = new google.maps.Map(document.getElementById(elem),self.mapProperties);
+        };
+
+    }
+
     //Starts of appviewmodel
     var AppViewModel = function() {
         var self = this;
-
-        // AppViewModel
-        this.places = ko.observableArray([]);
+        self.places = ko.observableArray([]);
         // sets up places with initial place list
         initial_places.forEach(function(place) {
             self.places.push(new Place(place));
         });
 
-        // Sets google map city and properties
-        this.city = {latitude: 42.3601,longitude: -71.0589};
-
-        // Google map options
-        this.mapProp = {
-            center: new google.maps.LatLng(self.city.latitude, self.city.longitude),
-            zoom: 12,
-            mapTypeId: google.maps.MapTypeId.ROADMAP
+        // sets private variable to sets up gmap;
+        var city = {latitude: 42.3601, longitude: -71.0589};
+        // map properties pass to GMap object
+        var mapProperties = {
+          center: new google.maps.LatLng(city.latitude,city.longitude),
+          zoom: 12,
+          mapTypeId: google.maps.MapTypeId.ROADMAP
         };
-
-        // Initialize map with default city marker
-        function initialize() {
-            self.map = new google.maps.Map(document.getElementById("googleMap"), self.mapProp);
-        }
+        // Sets google map city and properties
+        self.GMap = new GMap({
+            city: city,
+            mapProperties: mapProperties
+          });
 
         // Load map on page load
-        google.maps.event.addDomListener(window, 'load', initialize);
+        google.maps.event.addDomListener(window, 'load', self.GMap.initialize("googleMap"));
 
         //sets markers for all the places
         self.sets_initial_markers = function(places) {
@@ -53,11 +61,8 @@ $(document).ready(function() {
                     place.googleMapsLatLng = new google.maps.LatLng(dataLat, dataLng);
                     place.marker = new google.maps.Marker({
                         position: place.googleMapsLatLng
-                    // animates marker to draw user attention
-                    // TODO: hook animation to selected list item
-                    // animation:google.maps.Animation.BOUNCE
                     });
-                    place.marker.setMap(self.map);
+                    place.marker.setMap(self.GMap.map);
                     // sets marker to listen for click
                     // opens InfoWindow when clicked on
                     place.infoWindow = new google.maps.InfoWindow({
@@ -65,7 +70,7 @@ $(document).ready(function() {
                     });
                     // add evet listener for click
                     google.maps.event.addListener(place.marker, 'click', function() {
-                        place.infoWindow.open(self.map, place.marker);
+                        place.infoWindow.open(self.GMap.map, place.marker);
                         place.marker.setAnimation(google.maps.Animation.BOUNCE);
                         setTimeout(function(){
                           place.marker.setAnimation(null);
@@ -83,7 +88,7 @@ $(document).ready(function() {
 
         self.animateMarker = function(data){
           // open infowindow
-          data.infoWindow.open(self.map,data.marker);
+          data.infoWindow.open(self.GMap.map,data.marker);
           // sets animation for 2 seconds
           data.marker.setAnimation(google.maps.Animation.BOUNCE);
           setTimeout(function(){
@@ -115,7 +120,7 @@ $(document).ready(function() {
         self.place_markers = function(places) {
             places.forEach(function(place) {
                 place.infoWindow.close();
-                place.marker.setMap(self.map);
+                place.marker.setMap(self.GMap.map);
             });
         };
 
@@ -158,8 +163,6 @@ $(document).ready(function() {
 
     //End of AppViewModel
     }
-    
-    
     
     ko.applyBindings(new AppViewModel);
 //End document load
