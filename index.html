@@ -5,7 +5,8 @@
     <title>Nighborhood Maps</title>
     <link rel="stylesheet" type="text/css" href="css/normalize.css">
     <link rel="stylesheet" type="text/css" href="css/common.css">
-    <script src="http://maps.googleapis.com/maps/api/js"></script>
+<!--     // <script src="http://maps.googleapis.com/maps/api/js"></script> -->
+    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&signed_in=true&libraries=places"></script>
   </head>
 
   <body>
@@ -20,7 +21,7 @@
       <!-- List for app -->
       <div class='place-list'>
         <ul data-bind="foreach: live_places">
-          <b><a href="#"><li data-bind="text: name, click: $parent.animateMarker"></li></a><b>
+          <li data-bind="text: name, click: $parent.animateMarker"></li>
         </ul>
       </div>
       <!-- map for app -->

@@ -1,20 +1,5 @@
 $(document).ready(function() {
-    // place holder for initial model
-
-    var initial_places = [
-        {name: "Fenway Park",address: "4 Yawkey Way, Boston, MA 02215",type: "landmark"}, 
-        {name: "Boston Public Garden",address: "69 Beacon St., Boston, MA 02108",type: "landmark"}, 
-        {name: "Boston Public Library",address: "700 Boylston St., At Copley Sq., Boston, MA 02116",type: "landmark"}, 
-        {name: "JFK Library",address: "Columbia Point, Boston, MA 02125",type: "landmark"}, 
-        {name: "Boston Tea Party Ships and Museum",address: "Congress Street Bridge, Boston, MA 02210",type: "landmark"}
-    ];
     // model
-    var Place = function(data) {
-        this.name = ko.observable(data.name);
-        this.address = ko.observable(data.address);
-        this.type = ko.observable(data.type);
-    }
-
     var GMap = function(data){
         var self = this;
         self.city = data.city;
@@ -29,17 +14,14 @@ $(document).ready(function() {
     var AppViewModel = function() {
         var self = this;
         self.places = ko.observableArray([]);
-        // sets up places with initial place list
-        initial_places.forEach(function(place) {
-            self.places.push(new Place(place));
-        });
-
+        // for responsive search display
+        self.live_places = ko.observableArray(self.places());
         // sets private variable to sets up gmap;
         var city = {latitude: 42.3601, longitude: -71.0589};
         // map properties pass to GMap object
         var mapProperties = {
           center: new google.maps.LatLng(city.latitude,city.longitude),
-          zoom: 12,
+          zoom: 15,
           mapTypeId: google.maps.MapTypeId.ROADMAP
         };
         // Sets google map city and properties
@@ -51,40 +33,56 @@ $(document).ready(function() {
         // Load map on page load
         google.maps.event.addDomListener(window, 'load', self.GMap.initialize("googleMap"));
 
-        //sets markers for all the places
-        self.sets_initial_markers = function(places) {
-            places.forEach(function(place) {
-                $.getJSON("https://maps.googleapis.com/maps/api/geocode/json?address=" + place.address() + "&region=us", {}, function(data) {
-                    //parse for place of interest latitude and longitude to set up google map marker
-                    var dataLat = data.results[0].geometry.location.lat;
-                    var dataLng = data.results[0].geometry.location.lng;
-                    place.googleMapsLatLng = new google.maps.LatLng(dataLat, dataLng);
-                    place.marker = new google.maps.Marker({
-                        position: place.googleMapsLatLng
-                    });
-                    place.marker.setMap(self.GMap.map);
-                    // sets marker to listen for click
-                    // opens InfoWindow when clicked on
-                    place.infoWindow = new google.maps.InfoWindow({
-                        content: place.name()
-                    });
-                    // add evet listener for click
-                    google.maps.event.addListener(place.marker, 'click', function() {
-                        place.infoWindow.open(self.GMap.map, place.marker);
-                        place.marker.setAnimation(google.maps.Animation.BOUNCE);
-                        setTimeout(function(){
-                          place.marker.setAnimation(null);
-                        },2000);
-                    });
-                
-                });
-            
-            });
+        // TODO: GMAP PLACE SEARCHES
+        var service = new google.maps.places.PlacesService(self.GMap.map);
+        console.log(service);
+
+        var request = {
+          location: self.GMap.mapProperties.center,
+          radius: 200,
+          types: ['food','store']
         };
         
-        self.live_places = ko.observableArray(self.places());
-        
-        self.sets_initial_markers(self.live_places());
+        // Google Service search 
+        service.nearbySearch(request, callback);
+
+        function callback(results,status){
+          if (status == google.maps.places.PlacesServiceStatus.OK) {
+            //sets places
+            self.places(results.slice(0,10));
+            self.live_places(self.places());
+            console.log(self.places());
+            //sets markers
+            for(var i = 0; i < 10; i++){
+            // console.log(results[i]);
+              setsMarkers(results[i]);
+            }
+//            console.log(results.length);
+
+          }
+        }
+
+        function setsMarkers(placeObj){
+            var url = "https://maps.googleapis.com/maps/api/geocode/json?address=" + placeObj.geometry.location + "&region=us";
+            $.getJSON(url,{},function(){
+                var marker = new google.maps.Marker({
+                    position: placeObj.geometry.location,
+                    map: self.GMap.map
+                });
+                placeObj.marker = marker;
+                var infoWindow = new google.maps.InfoWindow({
+                    content: placeObj.name
+                });
+                placeObj.infoWindow = infoWindow;
+                google.maps.event.addListener(marker, 'click', function(){
+                    infoWindow.open(self.GMap.map, marker);
+                    marker.setAnimation(google.maps.Animation.BOUNCE);
+                    setTimeout(function(){
+                        marker.setAnimation(null)
+                    },2000);
+                });
+            });
+        }
 
         self.animateMarker = function(data){
           // open infowindow
@@ -101,11 +99,11 @@ $(document).ready(function() {
             var pattern = new RegExp(searchValue, "gi");
             if (option) {
                 var result = source().filter(function(place) {
-                    return place.name().match(pattern);
+                    return place.name.match(pattern);
                 });
             } else {
                 var result = source().filter(function(place) {
-                    return !(place.name().match(pattern));
+                    return !(place.name.match(pattern));
                 });
             }
             return result;
