@@ -44,10 +44,8 @@ html, body {
 ul {
 	list-style-type: none;
 }
- a {
- 	text-decoration: none;
- 	color: black;
- }
- a:hover {
- 	color: blue;
- }
+
+li {
+	border-style: solid;
+	border-color: gray;
+}

@@ -35,7 +35,7 @@ $(document).ready(function() {
 
         // TODO: GMAP PLACE SEARCHES
         var service = new google.maps.places.PlacesService(self.GMap.map);
-        console.log(service);
+        
 
         var request = {
           location: self.GMap.mapProperties.center,
@@ -134,17 +134,21 @@ $(document).ready(function() {
         $input.keyup(function(e) {
           var key = e.which;
           //Check to see if user hit enter
+          var searchValue = $input.val(); 
           if(key === 13){
-            if(self.live_places()[0]){
-              var selected = self.live_places()[0]
-              self.animateMarker(selected);
-            }else{
-              //// TODO: Implement new search beyond initial list
-              console.log("search returned no results");
-            }
+            // do place search
+            request.query = searchValue;
+            service.textSearch(request, callback)
+            // if(self.live_places()[0]){
+            //   var selected = self.live_places()[0]
+            //   self.animateMarker(selected);
+            // }else{
+            //   //// TODO: Implement new search beyond initial list
+            //   console.log("search returned no results");
+            // }
             
           }else{
-            var searchValue = $input.val();
+            
             //search places array for match
             var results = self.findPlaces(searchValue, self.places, true);
             var removals = self.findPlaces(searchValue, self.places, false);
