@@ -23,6 +23,10 @@
         <ul data-bind="foreach: live_places">
           <li data-bind="text: name, click: $parent.animateMarker"></li>
         </ul>
+        <ul class="emptySearchResult" data-bind="visible: searchResultEmpty">
+          <li class="emptySearchResult" data-bind="visible: searchResultEmpty">No result returned for your search</li>
+        </ul>
+        
       </div>
       <!-- map for app -->
       <div id="googleMap"></div>

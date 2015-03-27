@@ -7,7 +7,6 @@ $(document).ready(function() {
         self.initialize = function(elem){
             self.map = new google.maps.Map(document.getElementById(elem),self.mapProperties);
         };
-
     }
 
     //Starts of appviewmodel
@@ -34,18 +33,18 @@ $(document).ready(function() {
         google.maps.event.addDomListener(window, 'load', self.GMap.initialize("googleMap"));
 
         // TODO: GMAP PLACE SEARCHES
-        var service = new google.maps.places.PlacesService(self.GMap.map);
+        self.service = new google.maps.places.PlacesService(self.GMap.map);
         
 
-        var request = {
+        self.request = {
           location: self.GMap.mapProperties.center,
           radius: 200,
           types: ['food','store']
         };
         
         // Google Service search 
-        service.nearbySearch(request, callback);
-
+        self.service.nearbySearch(self.request, callback);
+        self.searchResultEmpty = false;
         function callback(results,status){
           if (status == google.maps.places.PlacesServiceStatus.OK) {
             //sets places
@@ -58,7 +57,10 @@ $(document).ready(function() {
               setsMarkers(results[i]);
             }
 //            console.log(results.length);
-
+          }else{
+            console.log("no results matches your search");
+            self.searchResultEmpty = true;
+            $('.emptySearchResult').show();
           }
         }
 
@@ -137,16 +139,10 @@ $(document).ready(function() {
           var searchValue = $input.val(); 
           if(key === 13){
             // do place search
-            request.query = searchValue;
-            service.textSearch(request, callback)
-            // if(self.live_places()[0]){
-            //   var selected = self.live_places()[0]
-            //   self.animateMarker(selected);
-            // }else{
-            //   //// TODO: Implement new search beyond initial list
-            //   console.log("search returned no results");
-            // }
-            
+            self.remove_markers(self.places());
+            self.remove_markers(self.live_places());
+            self.request.query = searchValue;
+            self.service.textSearch(self.request, callback);            
           }else{
             
             //search places array for match
