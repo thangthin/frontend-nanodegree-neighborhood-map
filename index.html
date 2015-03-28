@@ -4,8 +4,8 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Nighborhood Maps</title>
     <link rel="stylesheet" type="text/css" href="css/normalize.css">
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="css/common.css">
-<!--     // <script src="http://maps.googleapis.com/maps/api/js"></script> -->
     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&signed_in=true&libraries=places"></script>
   </head>
 
@@ -13,20 +13,31 @@
   <div class='wrapper'>
     <div class='content'>
       <!-- Header for app -->
-      <header class='header'><h1>Neighborhood Maps</h1></header>
-      <!-- Search bar for app -->
-      <div class='search-bar'>
-        <form><input class='input' type=text></form>
+      <header class='header'>
+        <h1>Neighborhood Maps</h1>
+      </header>
+      <div class="menu">
+        <button class='search-btn btn-sm' data-bind="click: toggleSearch"><span class="glyphicon glyphicon-search"></span></button>
+        <button class='show-list-btn btn-sm' ><span class="glyphicon glyphicon-list"></span></button>
       </div>
+      
+      <!-- Search bar for app -->
+      <div class='search-bar' data-bind="visible: computedShowSearch">
+        <div class="input-group">
+          <input type="text" class="form-control" placeholder="Neighborhood" aria-describedby="basic-addon1"><span class="input-group-btn" id="basic-addon1"><button class="btn btn-primary btn-sm">Go</button></span>
+        </div>
+        <div class="input-group">
+          <input type="text" class="input form-control" placeholder="Places" aria-describedby="basic-addon2">
+          <span class="input-group-btn" id="basic-addon1"><button class="btn btn-success btn-sm">Find</button></span>
+        </div>
+      </div>
+
+      
       <!-- List for app -->
-      <div class='place-list'>
-        <ul data-bind="foreach: live_places">
-          <li data-bind="text: name, click: $parent.animateMarker"></li>
+      <div class='place-list' data-bind="visible: showList">
+        <ul class='list-group' data-bind="foreach: live_places">
+          <li class='list-group-item' data-bind="text: name, click: $parent.animateMarker"></li>
         </ul>
-        <ul class="emptySearchResult" data-bind="visible: searchResultEmpty">
-          <li class="emptySearchResult" data-bind="visible: searchResultEmpty">No result returned for your search</li>
-        </ul>
-        
       </div>
       <!-- map for app -->
       <div id="googleMap"></div>

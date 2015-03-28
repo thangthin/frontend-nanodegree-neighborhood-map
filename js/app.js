@@ -9,6 +9,7 @@ $(document).ready(function() {
         };
     }
 
+
     //Starts of appviewmodel
     var AppViewModel = function() {
         var self = this;
@@ -44,7 +45,6 @@ $(document).ready(function() {
         
         // Google Service search 
         self.service.nearbySearch(self.request, callback);
-        self.searchResultEmpty = false;
         function callback(results,status){
           if (status == google.maps.places.PlacesServiceStatus.OK) {
             //sets places
@@ -59,8 +59,6 @@ $(document).ready(function() {
 //            console.log(results.length);
           }else{
             console.log("no results matches your search");
-            self.searchResultEmpty = true;
-            $('.emptySearchResult').show();
           }
         }
 
@@ -131,7 +129,7 @@ $(document).ready(function() {
           }
         });
 
-        var $input = $("input");
+        var $input = $(".input");
 
         $input.keyup(function(e) {
           var key = e.which;
@@ -158,8 +156,23 @@ $(document).ready(function() {
             console.log("removals: ", removals);
           }
         })
+        self.showSearch = ko.observable(false);
+        self.computedShowSearch = ko.computed(function(){
+            return self.showSearch();
+        })
+        self.showList = ko.observable(false);
+        self.toggleSearch = function(){
+            if (self.showSearch()){
+                self.showSearch(false);
+                console.log(self.showSearch());
+            }else{
+                self.showSearch(true);
+                console.log(self.showSearch());
+            }
+        }
 
     //End of AppViewModel
+
     }
     
     ko.applyBindings(new AppViewModel);
