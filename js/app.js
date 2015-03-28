@@ -157,9 +157,6 @@ $(document).ready(function() {
           }
         })
         self.showSearch = ko.observable(false);
-        self.computedShowSearch = ko.computed(function(){
-            return self.showSearch();
-        })
         self.showList = ko.observable(false);
         self.toggleSearch = function(){
             if (self.showSearch()){
@@ -170,6 +167,15 @@ $(document).ready(function() {
                 console.log(self.showSearch());
             }
         }
+        self.toggleList = function(){
+            if(self.showList()){
+                self.showList(false);
+            }else{
+                self.showList(true);
+            }
+        }
+
+
 
     //End of AppViewModel
 

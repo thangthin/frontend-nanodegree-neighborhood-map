@@ -18,13 +18,13 @@
       </header>
       <div class="menu">
         <button class='search-btn btn-sm' data-bind="click: toggleSearch"><span class="glyphicon glyphicon-search"></span></button>
-        <button class='show-list-btn btn-sm' ><span class="glyphicon glyphicon-list"></span></button>
+        <button class='show-list-btn btn-sm' data-bind="click: toggleList"><span class="glyphicon glyphicon-list"></span></button>
       </div>
       
       <!-- Search bar for app -->
-      <div class='search-bar' data-bind="visible: computedShowSearch">
+      <div class='search-bar' data-bind="visible: showSearch">
         <div class="input-group">
-          <input type="text" class="form-control" placeholder="Neighborhood" aria-describedby="basic-addon1"><span class="input-group-btn" id="basic-addon1"><button class="btn btn-primary btn-sm">Go</button></span>
+          <input type="text" class="form-control" placeholder="Neighborhood" aria-describedby="basic-addon1"><span class="input-group-btn" id="basic-addon1"><button class="go-btn btn btn-primary btn-sm">Go</button></span>
         </div>
         <div class="input-group">
           <input type="text" class="input form-control" placeholder="Places" aria-describedby="basic-addon2">
