@@ -1,48 +1,37 @@
 $(document).ready(function() {
     // model
-    var GMap = function(data){
-        var self = this;
-        self.city = data.city;
-        self.mapProperties = data.mapProperties;
-        self.initialize = function(elem){
-            self.map = new google.maps.Map(document.getElementById(elem),self.mapProperties);
-        };
-    }
-
 
     //Starts of appviewmodel
     var AppViewModel = function() {
+        // Appview properties 
         var self = this;
-        self.places = ko.observableArray([]);
-        // for responsive search display
-        self.live_places = ko.observableArray(self.places());
-        // sets private variable to sets up gmap;
+        self.places = ko.observableArray([]); // initial list
+        self.live_places = ko.observableArray(self.places()); // list for responsive display
+        self.showSearch = ko.observable(false); // show search field on view
+        self.showList = ko.observable(false);  // show list on view
+
+        // Google Map initialization
         var city = {latitude: 42.3601, longitude: -71.0589};
-        // map properties pass to GMap object
-        var mapProperties = {
+        // map properties that control Google Map
+        self.mapProperties = {
           center: new google.maps.LatLng(city.latitude,city.longitude),
           zoom: 15,
           mapTypeId: google.maps.MapTypeId.ROADMAP
         };
-        // Sets google map city and properties
-        self.GMap = new GMap({
-            city: city,
-            mapProperties: mapProperties
-          });
-
+        function initialize(){
+            self.GMap = new google.maps.Map(document.getElementById("googleMap"),self.mapProperties);    
+        }
         // Load map on page load
-        google.maps.event.addDomListener(window, 'load', self.GMap.initialize("googleMap"));
+        google.maps.event.addDomListener(window, 'load', initialize());
 
-        // TODO: GMAP PLACE SEARCHES
-        self.service = new google.maps.places.PlacesService(self.GMap.map);
-        
 
+        // Google Services, initialize initial list and responsive list to first 10 places returned from radius search
+        self.service = new google.maps.places.PlacesService(self.GMap);
         self.request = {
-          location: self.GMap.mapProperties.center,
+          location: self.mapProperties.center,
           radius: 200,
           types: ['food','store']
         };
-        
         // Google Service search 
         self.service.nearbySearch(self.request, callback);
         function callback(results,status){
@@ -56,18 +45,18 @@ $(document).ready(function() {
             // console.log(results[i]);
               setsMarkers(results[i]);
             }
-//            console.log(results.length);
+            // console.log(results.length);
           }else{
             console.log("no results matches your search");
           }
         }
-
+        // Make markers for result from google place radius/text search
         function setsMarkers(placeObj){
             var url = "https://maps.googleapis.com/maps/api/geocode/json?address=" + placeObj.geometry.location + "&region=us";
             $.getJSON(url,{},function(){
                 var marker = new google.maps.Marker({
                     position: placeObj.geometry.location,
-                    map: self.GMap.map
+                    map: self.GMap
                 });
                 placeObj.marker = marker;
                 var infoWindow = new google.maps.InfoWindow({
@@ -75,7 +64,7 @@ $(document).ready(function() {
                 });
                 placeObj.infoWindow = infoWindow;
                 google.maps.event.addListener(marker, 'click', function(){
-                    infoWindow.open(self.GMap.map, marker);
+                    infoWindow.open(self.GMap, marker);
                     marker.setAnimation(google.maps.Animation.BOUNCE);
                     setTimeout(function(){
                         marker.setAnimation(null)
@@ -86,7 +75,7 @@ $(document).ready(function() {
 
         self.animateMarker = function(data){
           // open infowindow
-          data.infoWindow.open(self.GMap.map,data.marker);
+          data.infoWindow.open(self.GMap,data.marker);
           // sets animation for 2 seconds
           data.marker.setAnimation(google.maps.Animation.BOUNCE);
           setTimeout(function(){
@@ -108,19 +97,37 @@ $(document).ready(function() {
             }
             return result;
         }
-        
+        // remove markers for each place object
         self.remove_markers = function(places) {
             places.forEach(function(place) {
                 place.marker.setMap(null);
             });
         };
-        
+        // place markers for each place object
         self.place_markers = function(places) {
             places.forEach(function(place) {
                 place.infoWindow.close();
-                place.marker.setMap(self.GMap.map);
+                place.marker.setMap(self.GMap);
             });
         };
+        // toggle showSearch value
+        self.toggleSearch = function(){
+            if (self.showSearch()){
+                self.showSearch(false);
+                console.log(self.showSearch());
+            }else{
+                self.showSearch(true);
+                console.log(self.showSearch());
+            }
+        }
+        // toggle showList value
+        self.toggleList = function(){
+            if(self.showList()){
+                self.showList(false);
+            }else{
+                self.showList(true);
+            }
+        }
 
         // prevent propagation
         $("input").bind("keypress", function (e) {
@@ -130,7 +137,8 @@ $(document).ready(function() {
         });
 
         var $input = $(".input");
-
+        // Simulate instant search
+        // Listen for key input into place search, update list and map as user type
         $input.keyup(function(e) {
           var key = e.which;
           //Check to see if user hit enter
@@ -142,7 +150,6 @@ $(document).ready(function() {
             self.request.query = searchValue;
             self.service.textSearch(self.request, callback);            
           }else{
-            
             //search places array for match
             var results = self.findPlaces(searchValue, self.places, true);
             var removals = self.findPlaces(searchValue, self.places, false);
@@ -156,29 +163,7 @@ $(document).ready(function() {
             console.log("removals: ", removals);
           }
         })
-        self.showSearch = ko.observable(false);
-        self.showList = ko.observable(false);
-        self.toggleSearch = function(){
-            if (self.showSearch()){
-                self.showSearch(false);
-                console.log(self.showSearch());
-            }else{
-                self.showSearch(true);
-                console.log(self.showSearch());
-            }
-        }
-        self.toggleList = function(){
-            if(self.showList()){
-                self.showList(false);
-            }else{
-                self.showList(true);
-            }
-        }
-
-
-
     //End of AppViewModel
-
     }
     
     ko.applyBindings(new AppViewModel);
