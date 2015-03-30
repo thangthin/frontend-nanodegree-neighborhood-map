@@ -81,7 +81,7 @@ $(document).ready(function() {
           setTimeout(function(){
             data.marker.setAnimation(null);
           },2000);
-        }
+        };
         // Implement search functionality
         // helper functions
         self.findPlaces = function(searchValue, source, option) {
@@ -119,13 +119,27 @@ $(document).ready(function() {
                 self.showSearch(true);
                 console.log(self.showSearch());
             }
-        }
+        };
         // toggle showList value
         self.toggleList = function(){
             if(self.showList()){
                 self.showList(false);
             }else{
                 self.showList(true);
+            }
+        };
+        self.newSearch = function(){
+            var $input = $(".input");
+            var searchValue = $input.val();
+            self.remove_markers(self.places());
+            self.remove_markers(self.live_places());
+            self.request.query = searchValue
+            self.service.textSearch(self.request,callback);
+        };
+        self.searchAndShowList = function(){
+            self.newSearch();
+            if(!self.showList()){
+                self.toggleList();    
             }
         }
 
@@ -142,14 +156,10 @@ $(document).ready(function() {
         $input.keyup(function(e) {
           var key = e.which;
           //Check to see if user hit enter
-          var searchValue = $input.val(); 
           if(key === 13){
-            // do place search
-            self.remove_markers(self.places());
-            self.remove_markers(self.live_places());
-            self.request.query = searchValue;
-            self.service.textSearch(self.request, callback);            
+            self.newSearch();
           }else{
+            var searchValue = $input.val(); 
             //search places array for match
             var results = self.findPlaces(searchValue, self.places, true);
             var removals = self.findPlaces(searchValue, self.places, false);
