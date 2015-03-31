@@ -24,11 +24,11 @@
       <!-- Search bar for app -->
       <div class='search-bar' data-bind="visible: showSearch">
         <div class="input-group">
-          <input type="text" class="form-control" placeholder="Neighborhood" aria-describedby="basic-addon1"><span class="input-group-btn" id="basic-addon1"><button class="go-btn btn btn-primary btn-sm">Go</button></span>
+          <input type="text" class="city-input form-control" placeholder="City, State" aria-describedby="basic-addon1"><span class="input-group-btn" id="basic-addon1"><button class="go-btn btn btn-primary btn-sm" data-bind="click: updateCity">New City</button></span>
         </div>
         <div class="input-group">
           <input type="text" class="input form-control" placeholder="Places" aria-describedby="basic-addon2">
-          <span class="input-group-btn" id="basic-addon1"><button class="find-btn btn btn-success btn-sm" data-bind="click: searchAndShowList">Find</button></span>
+          <span class="input-group-btn" id="basic-addon1"><button class="find-btn btn btn-success btn-sm" data-bind="click: searchAndShowList">New Search</button></span>
         </div>
       </div>
 
@@ -36,7 +36,7 @@
       <!-- List for app -->
       <div class='place-list' data-bind="visible: showList">
         <ul class='list-group' data-bind="foreach: live_places">
-          <li class='list-group-item' data-bind="text: name, click: $parent.animateMarker"></li>
+          <li class='list-group-item' data-bind="text: name, click: $parent.animateMarkerHideList"></li>
         </ul>
       </div>
       <!-- map for app -->

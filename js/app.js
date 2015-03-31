@@ -52,7 +52,7 @@ $(document).ready(function() {
         }
         // Make markers for result from google place radius/text search
         function setsMarkers(placeObj){
-            var url = "https://maps.googleapis.com/maps/api/geocode/json?address=" + placeObj.geometry.location + "&region=us";
+            var url = "https://maps.googleapis.com/maps/api/geocode/json?address=" + placeObj.geometry.location;
             $.getJSON(url,{},function(){
                 var marker = new google.maps.Marker({
                     position: placeObj.geometry.location,
@@ -69,6 +69,8 @@ $(document).ready(function() {
                     setTimeout(function(){
                         marker.setAnimation(null)
                     },2000);
+                    self.GMap.setZoom(17);
+                    self.GMap.panTo(placeObj.geometry.location);
                 });
             });
         }
@@ -82,6 +84,7 @@ $(document).ready(function() {
             data.marker.setAnimation(null);
           },2000);
         };
+
         // Implement search functionality
         // helper functions
         self.findPlaces = function(searchValue, source, option) {
@@ -142,12 +145,42 @@ $(document).ready(function() {
                 self.toggleList();    
             }
         }
+        self.animateMarkerHideList = function(data){
+            self.animateMarker(data);
+            if(self.showList()){
+                self.toggleList();
+            }
+            var new_center = data.geometry.location;
+            self.GMap.setZoom(17);
+            self.GMap.panTo(new_center);
+        };
+        self.updateCity = function(){
+            var $city_input = $(".city-input");
+            var searchValue = $city_input.val();
+            var url = "https://maps.googleapis.com/maps/api/geocode/json?address=" + searchValue;
+            $.getJSON(url,{},function(data){
+                console.log(data);
+                var new_city = new google.maps.LatLng(data.results[0].geometry.location.lat,
+                        data.results[0].geometry.location.lng
+                    );
+                self.mapProperties.center = new_city;
+                self.request.location = new_city;
+                self.GMap.setCenter(new_city);
+            });
+        }
 
         // prevent propagation
         $("input").bind("keypress", function (e) {
           if (e.keyCode == 13) {
             return false;
           }
+        });
+        //New city input field listener
+        var $cityInput = $(".city-input");
+        $cityInput.keyup(function(e){
+            if(e.which === 13){
+                self.updateCity();
+            }
         });
 
         var $input = $(".input");
@@ -157,7 +190,7 @@ $(document).ready(function() {
           var key = e.which;
           //Check to see if user hit enter
           if(key === 13){
-            self.newSearch();
+            self.searchAndShowList();
           }else{
             var searchValue = $input.val(); 
             //search places array for match
