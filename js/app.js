@@ -7,9 +7,9 @@ $(document).ready(function() {
         var self = this;
         self.places = ko.observableArray([]); // initial list
         self.live_places = ko.observableArray(self.places()); // list for responsive display
-        self.showSearch = ko.observable(false); // show search field on view
-        self.showList = ko.observable(false);  // show list on view
-
+        self.toShowSearch = ko.observable(false); // show search field on view
+        self.toShowList = ko.observable(false);  // show list on view
+        
         // Google Map initialization
         var city = {latitude: 42.3601, longitude: -71.0589};
         // map properties that control Google Map
@@ -30,12 +30,14 @@ $(document).ready(function() {
         self.request = {
           location: self.mapProperties.center,
           radius: 200,
-          types: ['food','store']
+          types: ['food','store'],
+          query: "food, store"
         };
         // Google Service search 
         self.service.nearbySearch(self.request, callback);
         function callback(results,status){
           if (status == google.maps.places.PlacesServiceStatus.OK) {
+            self.hideSearchErrorMsg();
             //sets places
             self.places(results.slice(0,10));
             self.live_places(self.places());
@@ -47,7 +49,7 @@ $(document).ready(function() {
             }
             // console.log(results.length);
           }else{
-            console.log("no results matches your search");
+            self.showSearchErrorMsg();
           }
         }
         // Make markers for result from google place radius/text search
@@ -115,39 +117,46 @@ $(document).ready(function() {
         };
         // toggle showSearch value
         self.toggleSearch = function(){
-            if (self.showSearch()){
-                self.showSearch(false);
-                console.log(self.showSearch());
+            if (self.toShowSearch()){
+                self.toShowSearch(false);
             }else{
-                self.showSearch(true);
-                console.log(self.showSearch());
+                self.toShowSearch(true);
             }
+        };
+        self.showList = function(){
+            self.toShowList(true);
+        };
+        self.hideList = function(){
+            self.toShowList(false);
         };
         // toggle showList value
         self.toggleList = function(){
-            if(self.showList()){
-                self.showList(false);
+            if(self.toShowList()){
+                self.toShowList(false);
             }else{
-                self.showList(true);
+                self.toShowList(true);
             }
         };
         self.newSearch = function(){
             var $input = $(".input");
             var searchValue = $input.val();
-            self.remove_markers(self.places());
-            self.remove_markers(self.live_places());
-            self.request.query = searchValue
-            self.service.textSearch(self.request,callback);
+            if(searchValue){
+                self.remove_markers(self.places());
+                self.remove_markers(self.live_places());
+                self.request.query = searchValue
+                self.service.textSearch(self.request,callback);                
+            }else{
+                self.showList();
+            }
+            
         };
         self.searchAndShowList = function(){
             self.newSearch();
-            if(!self.showList()){
-                self.toggleList();    
-            }
+            self.showList();
         }
         self.animateMarkerHideList = function(data){
             self.animateMarker(data);
-            if(self.showList()){
+            if(self.toShowList()){
                 self.toggleList();
             }
             var new_center = data.geometry.location;
@@ -157,17 +166,35 @@ $(document).ready(function() {
         self.updateCity = function(){
             var $city_input = $(".city-input");
             var searchValue = $city_input.val();
-            var url = "https://maps.googleapis.com/maps/api/geocode/json?address=" + searchValue;
-            $.getJSON(url,{},function(data){
-                console.log(data);
-                var new_city = new google.maps.LatLng(data.results[0].geometry.location.lat,
+            if(searchValue){
+                var url = "https://maps.googleapis.com/maps/api/geocode/json?address=" + searchValue;
+                $.getJSON(url,{},function(data){
+                    var new_city = new google.maps.LatLng(data.results[0].geometry.location.lat,
                         data.results[0].geometry.location.lng
                     );
-                self.mapProperties.center = new_city;
-                self.request.location = new_city;
-                self.GMap.setCenter(new_city);
-            });
-        }
+                    self.remove_markers(self.places());
+                    self.remove_markers(self.live_places());
+                    self.mapProperties.center = new_city;
+                    self.request.location = new_city;
+                    self.GMap.setCenter(new_city);
+                    self.service.textSearch(self.request,callback); 
+                    self.showList()
+                });
+            // Error Handling, if user forget to enter search value;
+            }else{
+                //Notify user to enter city name in search field
+                alert("Enter the city you'd like to visit");
+            }
+        };
+
+        // Error Handling
+        self.toShowError = ko.observable(false); // show error msg when true;
+        self.showSearchErrorMsg = function(){
+            self.toShowError(true);
+        };
+        self.hideSearchErrorMsg = function(){
+            self.toShowError(false);
+        };
 
         // prevent propagation
         $("input").bind("keypress", function (e) {
@@ -201,11 +228,17 @@ $(document).ready(function() {
             self.remove_markers(removals);
             // place mapper of new search
             self.place_markers(results);
+            if(self.live_places().length > 0){
+                self.hideSearchErrorMsg();
+            }
             // TODO: REMOVE ALL CONSOLE.LOG
             console.log("results: ", results);
             console.log("removals: ", removals);
           }
         })
+
+
+
     //End of AppViewModel
     }
     

@@ -22,7 +22,7 @@
       </div>
       
       <!-- Search bar for app -->
-      <div class='search-bar' data-bind="visible: showSearch">
+      <div class='search-bar' data-bind="visible: toShowSearch">
         <div class="input-group">
           <input type="text" class="city-input form-control" placeholder="City, State" aria-describedby="basic-addon1"><span class="input-group-btn" id="basic-addon1"><button class="go-btn btn btn-primary btn-sm" data-bind="click: updateCity">New City</button></span>
         </div>
@@ -34,9 +34,12 @@
 
       
       <!-- List for app -->
-      <div class='place-list' data-bind="visible: showList">
+      <div class='place-list' data-bind="visible: toShowList">
         <ul class='list-group' data-bind="foreach: live_places">
           <li class='list-group-item' data-bind="text: name, click: $parent.animateMarkerHideList"></li>
+        </ul>
+        <ul class='list-group' data-bind="visible: toShowError">
+          <li class='list-group-item'>Your search did not result in any places</li>
         </ul>
       </div>
       <!-- map for app -->
