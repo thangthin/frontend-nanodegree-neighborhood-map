@@ -237,8 +237,16 @@ $(document).ready(function() {
           }
         })
 
-
-
+        var CLIENT_ID = "3VC1CJ0MPYVVDUJTN3B3VS5QCWNK5EFRWDTU2LVVBKJDXMQ4",
+            CLIENT_SECRET = "TZLXMLQORKSIOCEPBWXA0EDNSAR20NTBCGDKGC1C5DFAC2EA",
+            ll = "42.3601,-71.0589"
+        var FourSquareBaseURL = "https://api.foursquare.com/v2/venues/search?ll="
+                                +ll+"&client_id="+CLIENT_ID+"&client_secret="
+                                +CLIENT_SECRET+"&v=20150401";
+                                
+        $.getJSON(FourSquareBaseURL,{},function(data){
+            console.log(data,"FourSquare Result");
+        })
     //End of AppViewModel
     }
     
