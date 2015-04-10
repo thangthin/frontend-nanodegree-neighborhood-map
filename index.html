@@ -17,30 +17,43 @@
         <h1>Neighborhood Maps</h1>
       </header>
       <div class="menu">
-        <button class='search-btn btn-sm' data-bind="click: toggleSearch"><span class="glyphicon glyphicon-search"></span></button>
-        <button class='show-list-btn btn-sm' data-bind="click: toggleList"><span class="glyphicon glyphicon-list"></span></button>
+        <div>
+          <button class='search-btn btn-sm' data-bind="click: toggleShowSearchBar"><span class="glyphicon glyphicon-search"></span></button>
+          <button class='show-list-btn btn-sm' data-bind="click: toggleShowList"><span class="glyphicon glyphicon-list"></span></button>
+        </div>
+        <div>
+          <button class='street-view-btn btn-sm' data-bind="click: toggleStreetView"><span class="glyphicon glyphicon-road"></span></button>
+          <button class='street-view-btn btn-sm' data-bind="click: closeMenus"><span class="glyphicon glyphicon-remove"></span></button>
+        </div>
       </div>
       
       <!-- Search bar for app -->
-      <div class='search-bar' data-bind="visible: toShowSearch">
+      <div class='search-bar' data-bind="visible: showSearchBar">
         <div class="input-group">
           <input type="text" class="city-input form-control" placeholder="City, State" aria-describedby="basic-addon1"><span class="input-group-btn" id="basic-addon1"><button class="go-btn btn btn-primary btn-sm" data-bind="click: updateCity">New City</button></span>
         </div>
         <div class="input-group">
           <input type="text" class="input form-control" placeholder="Places" aria-describedby="basic-addon2">
-          <span class="input-group-btn" id="basic-addon1"><button class="find-btn btn btn-success btn-sm" data-bind="click: searchAndShowList">New Search</button></span>
+          <span class="input-group-btn" id="basic-addon1"><button class="find-btn btn btn-success btn-sm" data-bind="click: textSearchPlaceForButton">New Search</button></span>
         </div>
       </div>
 
       
       <!-- List for app -->
-      <div class='place-list' data-bind="visible: toShowList">
-        <ul class='list-group' data-bind="foreach: live_places">
-          <li class='list-group-item' data-bind="text: name, click: $parent.animateMarkerHideList"></li>
+      <div class='place-list error-display'>
+        <p class='list-group-item error-display' data-bind="text: errorMessage, visible: displayError"></p>
+    <!--     <ul class='list-group error-display'>
+          <li class='list-group-item error-display' data-bind="text: errorMessage, visible: displayError"></li>
+        </ul> -->
+      </div>
+      <div class='place-list' data-bind="visible: showList">
+        <ul class='list-group' data-bind="foreach: livePlaces">
+          <li class='list-group-item' data-bind="text: $data.name, click: $parent.animatePlace"></li>
         </ul>
-        <ul class='list-group' data-bind="visible: toShowError">
-          <li class='list-group-item'>Your search did not result in any places</li>
-        </ul>
+      </div>
+
+      <!-- Street view portion of location -->
+      <div id='pano' data-bind="visible: streetViewDisplay">
       </div>
       <!-- map for app -->
       <div id="googleMap"></div>

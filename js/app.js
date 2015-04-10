@@ -1,255 +1,298 @@
-$(document).ready(function() {
-    // model
 
-    //Starts of appviewmodel
-    var AppViewModel = function() {
-        // Appview properties 
-        var self = this;
-        self.places = ko.observableArray([]); // initial list
-        self.live_places = ko.observableArray(self.places()); // list for responsive display
-        self.toShowSearch = ko.observable(false); // show search field on view
-        self.toShowList = ko.observable(false);  // show list on view
-        
-        // Google Map initialization
-        var city = {latitude: 42.3601, longitude: -71.0589};
-        // map properties that control Google Map
+// //Starts of appviewmodel
+var AppViewModel = function() {
+    "use strict"
+    var self = this;
+    function initialize(){
+        self.city = {lat: 42.3601, lng: -71.0589},
         self.mapProperties = {
-          center: new google.maps.LatLng(city.latitude,city.longitude),
-          zoom: 15,
-          mapTypeId: google.maps.MapTypeId.ROADMAP
+                center: new google.maps.LatLng(self.city.lat, self.city.lng),
+                zoom:17,
+                mapTypeId: google.maps.MapTypeId.ROADMAP
+            }
+        self.GMAP = new google.maps.Map(document.getElementById("googleMap"),self.mapProperties);
+        self.service = new google.maps.places.PlacesService(self.GMAP);
+        self.places = [];
+        self.livePlaces = ko.observableArray([]);
+        self.currentPlace = ko.observable();
+        self.panoramaOptions = {
+            position: self.mapProperties.center,
+            pov: {
+              heading: 34,
+              pitch: 10
+            }
         };
-        function initialize(){
-            self.GMap = new google.maps.Map(document.getElementById("googleMap"),self.mapProperties);    
-        }
-        // Load map on page load
-        google.maps.event.addDomListener(window, 'load', initialize());
-
-
-        // Google Services, initialize initial list and responsive list to first 10 places returned from radius search
-        self.service = new google.maps.places.PlacesService(self.GMap);
+        self.sv = new google.maps.StreetViewService();
+        self.panorama = new google.maps.StreetViewPanorama(document.getElementById('pano'),self.panoramaOptions);
         self.request = {
-          location: self.mapProperties.center,
-          radius: 200,
-          types: ['food','store'],
-          query: "food, store"
-        };
-        // Google Service search 
-        self.service.nearbySearch(self.request, callback);
-        function callback(results,status){
-          if (status == google.maps.places.PlacesServiceStatus.OK) {
-            self.hideSearchErrorMsg();
-            //sets places
-            self.places(results.slice(0,10));
-            self.live_places(self.places());
-            console.log(self.places());
-            //sets markers
-            for(var i = 0; i < 10; i++){
-            // console.log(results[i]);
-              setsMarkers(results[i]);
-            }
-            // console.log(results.length);
-          }else{
-            self.showSearchErrorMsg();
-          }
-        }
-        // Make markers for result from google place radius/text search
-        function setsMarkers(placeObj){
-            var url = "https://maps.googleapis.com/maps/api/geocode/json?address=" + placeObj.geometry.location;
-            $.getJSON(url,{},function(){
-                var marker = new google.maps.Marker({
-                    position: placeObj.geometry.location,
-                    map: self.GMap
-                });
-                placeObj.marker = marker;
-                var infoWindow = new google.maps.InfoWindow({
-                    content: placeObj.name
-                });
-                placeObj.infoWindow = infoWindow;
-                google.maps.event.addListener(marker, 'click', function(){
-                    infoWindow.open(self.GMap, marker);
-                    marker.setAnimation(google.maps.Animation.BOUNCE);
-                    setTimeout(function(){
-                        marker.setAnimation(null)
-                    },2000);
-                    self.GMap.setZoom(17);
-                    self.GMap.panTo(placeObj.geometry.location);
-                });
+                location: self.mapProperties.center,
+                radius: 200,
+                types: ['food','store','establishment'],
+                query: "food, store"
+            };
+        self.GOOGLE_GEOCODE_BASE_URL = "https://maps.googleapis.com/maps/api/geocode/json?address=";
+        self.displayError = ko.observable(false);
+        self.errorMessage = ko.observable("");
+        self.streetViewDisplay = ko.observable(true);
+        self.showList = ko.observable(true);
+        self.showSearchBar = ko.observable(true);
+        getGooglePlaces(self.request);
+    }
+    //Private functions that gathers places
+    //start map with nearby search of places
+    function getGooglePlaces(request){
+        self.service.nearbySearch(request, showPlacesOnMap); 
+    }
+    //google search callback, get detail of every request result
+    function showPlacesOnMap(results,status){
+        if (status == google.maps.places.PlacesServiceStatus.OK){
+            self.displayError(false);
+            //show Places On map, markers, that have event listener
+            results.slice(0,15).forEach(function(e){
+                addMarker(e);
+                showMarker(e);
+                var formattedContent = infoWindowContent(e);
+                addInfoWindow(e,newInfoWindow(formattedContent));
+                self.places.push(e);
+                self.livePlaces.push(e);
             });
+        }else{
+           self.displayError(true);
+           self.errorMessage("No search result returned");
         }
+    }
+    //add marker to object and the animation listener
+    function addMarker(np){
+        var marker = new google.maps.Marker({
+            position: np.geometry.location,
+            map: self.GMAP
+        })
+        np.marker = marker;
+        google.maps.event.addListener(marker, 'click', function(){
+            self.animatePlace(np);
+        });
+    }
+    //add info window for place
+    function addInfoWindow(np,newWindow){
+        np.infoWindow = newWindow;
+    }
+    function newInfoWindow(formattedContent){
+        var infoWindow = new google.maps.InfoWindow({
+            content: formattedContent,
+            maxwidth: 350
+        });
+        return infoWindow;
+    }
+    //Sets the content of the infowindow for place
+    function infoWindowContent(np){
+        var content = "<h3>"+np.name+"</h3>";
+        if(np.formatted_address || np.vicinity){
+            content += (np.formatted_address ? np.formatted_address : np.vicinity);
+        }
+        if(np.opening_hours){
+            content += "<br>" + "Open Now: " + np.opening_hours.open_now;
+        }
+        if(np.rating){
+            content += "<br>" + "Rating: " + np.rating;
+        }
+        if(np.price_level){
+            content += "<br>" + "Price Level: " + np.price_level;
+        }
+        if(np.types){
+            content += "<br>" + "Types: " + np.types.join(", ");
+        }
+        if(np.formatted_phone_number){
+            content += "<br>" + "Phone: " + np.formatted_phone_number;
+        }
+        if(np.photos){
+            content += "<br><img src='"+np.photos[0].getUrl({'maxWidth': 300, 'maxHeight': 200})+"' width=300 height=200>"; 
+        }
+        return content;
+    }
+    //show marker of place on map
+    function showMarker(np){
+        np.marker.setMap(self.GMAP);
+    }
+    //Place ajax request to google service for detail of the googleplace return by nearby search for future addition
+    function requestDetail(googlePlace){
+        var request = {
+            placeId: googlePlace.place_id
+        };
+        self.service.getDetails(request, manageDetailPlace);
+    }
 
-        self.animateMarker = function(data){
-          // open infowindow
-          data.infoWindow.open(self.GMap,data.marker);
-          // sets animation for 2 seconds
-          data.marker.setAnimation(google.maps.Animation.BOUNCE);
-          setTimeout(function(){
-            data.marker.setAnimation(null);
-          },2000);
-        };
+    //Street View callback
+    function processSVData(data, status) {
+        if (status == google.maps.StreetViewStatus.OK) {
+            self.displayError(false);
 
-        // Implement search functionality
-        // helper functions
-        self.findPlaces = function(searchValue, source, option) {
-            var pattern = new RegExp(searchValue, "gi");
-            if (option) {
-                var result = source().filter(function(place) {
-                    return place.name.match(pattern);
-                });
-            } else {
-                var result = source().filter(function(place) {
-                    return !(place.name.match(pattern));
-                });
-            }
-            return result;
-        }
-        // remove markers for each place object
-        self.remove_markers = function(places) {
-            places.forEach(function(place) {
-                place.marker.setMap(null);
+            self.panorama.setPano(data.location.pano);
+            self.panorama.setPov({
+                heading: 270,
+                pitch: 0
             });
-        };
-        // place markers for each place object
-        self.place_markers = function(places) {
-            places.forEach(function(place) {
-                place.infoWindow.close();
-                place.marker.setMap(self.GMap);
-            });
-        };
-        // toggle showSearch value
-        self.toggleSearch = function(){
-            if (self.toShowSearch()){
-                self.toShowSearch(false);
-            }else{
-                self.toShowSearch(true);
-            }
-        };
-        self.showList = function(){
-            self.toShowList(true);
-        };
-        self.hideList = function(){
-            self.toShowList(false);
-        };
-        // toggle showList value
-        self.toggleList = function(){
-            if(self.toShowList()){
-                self.toShowList(false);
-            }else{
-                self.toShowList(true);
-            }
-        };
-        self.newSearch = function(){
-            var $input = $(".input");
-            var searchValue = $input.val();
-            if(searchValue){
-                self.remove_markers(self.places());
-                self.remove_markers(self.live_places());
-                self.request.query = searchValue
-                self.service.textSearch(self.request,callback);                
-            }else{
-                self.showList();
+            self.panorama.setVisible(true);
+        } else {
+            // TODO Add better error handling
+            if(self.streetViewDisplay()){
+                self.displayError(true);
+                self.errorMessage("Can't display street view of location"); 
             }
             
-        };
-        self.searchAndShowList = function(){
-            self.newSearch();
-            self.showList();
         }
-        self.animateMarkerHideList = function(data){
-            self.animateMarker(data);
-            if(self.toShowList()){
-                self.toggleList();
+    }
+    
+    //remove marker of every place in array
+    function removeMarkers(arr){
+        arr.forEach(function(e){
+            e.marker.setMap(null);
+        })
+    }
+    //update map markers and list based on user input on new search input field
+    function updateSearchResult(searchValue){
+        var pattern = new RegExp(searchValue,"gi");
+        self.livePlaces(self.places.slice(0))
+        self.places.forEach(function(e){
+            if(!e.name.match(pattern)){
+                e.marker.setMap(null);
+                self.livePlaces.remove(e);
+            }else{
+                e.marker.setMap(self.GMAP);
             }
-            var new_center = data.geometry.location;
-            self.GMap.setZoom(17);
-            self.GMap.panTo(new_center);
-        };
-        self.updateCity = function(){
-            var $city_input = $(".city-input");
-            var searchValue = $city_input.val();
-            if(searchValue){
-                var url = "https://maps.googleapis.com/maps/api/geocode/json?address=" + searchValue;
-                $.getJSON(url,{},function(data){
+        })
+    }
+    //update result based on result from text search (more convenient for users e.g 'burgers in boston' is acceptable)
+    function textSearchPlace(request){
+        self.service.textSearch(request,showPlacesOnMap);
+    }
+
+    //Functions that interact with both view and google search service
+    //use text search for user new search for more intuitive searches, e.g 'libraries' would return list of library establishmets. 
+    self.textSearchPlaceForButton = function(){
+        var query = $('.input').val();
+        self.request.query = query;
+        textSearchPlace(self.request);
+    }
+    //Event click listener callback
+    self.animatePlace = function(place){
+        //Update the appropriate observable
+        self.currentPlace(place); //TODO - take this out, need for debugging only
+        self.sv.getPanoramaByLocation(place.geometry.location, 50, processSVData);
+        place.infoWindow.open(self.GMAP, place.marker);
+        place.marker.setAnimation(google.maps.Animation.BOUNCE);
+        setTimeout(function(){
+            place.marker.setAnimation(null)
+        },2000);
+        //self.GMAP.setZoom(self.mapProperties.zoom);
+        self.GMAP.panTo(place.geometry.location);
+    };
+    //update the city, click listener callback
+    self.updateCity = function(){
+        var $input = $(".city-input");
+        var city = $input.val();
+        if(city){
+            self.displayError(false);
+            var url = self.GOOGLE_GEOCODE_BASE_URL + city;
+            $.getJSON(url,{},function(data){
+                if(data.status === "OK"){
+                    self.displayError(false);
                     var new_city = new google.maps.LatLng(data.results[0].geometry.location.lat,
                         data.results[0].geometry.location.lng
                     );
-                    self.remove_markers(self.places());
-                    self.remove_markers(self.live_places());
+                    removeMarkers(self.livePlaces());
+                    self.livePlaces.removeAll();
+                    self.places.splice(0);
                     self.mapProperties.center = new_city;
                     self.request.location = new_city;
-                    self.GMap.setCenter(new_city);
-                    self.service.textSearch(self.request,callback); 
-                    self.showList()
-                });
-            // Error Handling, if user forget to enter search value;
-            }else{
-                //Notify user to enter city name in search field
-                alert("Enter the city you'd like to visit");
-            }
-        };
+                    self.GMAP.setCenter(new_city);
+                    self.sv.getPanoramaByLocation(new_city, 50, processSVData);
+                    textSearchPlace(self.request);   
+                }else{
+                    self.displayError(true);
+                    self.errorMessage("Can't find new city");
+                }
+            });
+        // Error Handling, if user forget to enter search value;
+        }else{
+            //Notify user to enter city name in search field
+            self.displayError(true);
+            self.errorMessage("Enter new city before searching for city");
+        }
+    };
 
-        // Error Handling
-        self.toShowError = ko.observable(false); // show error msg when true;
-        self.showSearchErrorMsg = function(){
-            self.toShowError(true);
-        };
-        self.hideSearchErrorMsg = function(){
-            self.toShowError(false);
-        };
-
-        // prevent propagation
-        $("input").bind("keypress", function (e) {
-          if (e.keyCode == 13) {
-            return false;
-          }
-        });
-        //New city input field listener
-        var $cityInput = $(".city-input");
-        $cityInput.keyup(function(e){
-            if(e.which === 13){
-                self.updateCity();
-            }
-        });
-
-        var $input = $(".input");
-        // Simulate instant search
-        // Listen for key input into place search, update list and map as user type
-        $input.keyup(function(e) {
-          var key = e.which;
-          //Check to see if user hit enter
-          if(key === 13){
-            self.searchAndShowList();
-          }else{
-            var searchValue = $input.val(); 
-            //search places array for match
-            var results = self.findPlaces(searchValue, self.places, true);
-            var removals = self.findPlaces(searchValue, self.places, false);
-            self.live_places(results);
-            // remove marker of places not in results
-            self.remove_markers(removals);
-            // place mapper of new search
-            self.place_markers(results);
-            if(self.live_places().length > 0){
-                self.hideSearchErrorMsg();
-            }
-            // TODO: REMOVE ALL CONSOLE.LOG
-            console.log("results: ", results);
-            console.log("removals: ", removals);
-          }
-        })
-
-        var CLIENT_ID = "3VC1CJ0MPYVVDUJTN3B3VS5QCWNK5EFRWDTU2LVVBKJDXMQ4",
-            CLIENT_SECRET = "TZLXMLQORKSIOCEPBWXA0EDNSAR20NTBCGDKGC1C5DFAC2EA",
-            ll = "42.3601,-71.0589"
-        var FourSquareBaseURL = "https://api.foursquare.com/v2/venues/search?ll="
-                                +ll+"&client_id="+CLIENT_ID+"&client_secret="
-                                +CLIENT_SECRET+"&v=20150401";
-                                
-        $.getJSON(FourSquareBaseURL,{},function(data){
-            console.log(data,"FourSquare Result");
-        })
-    //End of AppViewModel
+    self.toggleStreetView = function(){
+        if(self.streetViewDisplay()){
+            self.streetViewDisplay(false);
+        }else{
+            self.streetViewDisplay(true);
+        }
     }
+    self.toggleShowList = function(){
+        if(self.showList()){
+            self.showList(false);
+        }else{
+            self.showList(true);
+        }   
+    }
+    self.toggleShowSearchBar = function(){
+        if(self.showSearchBar()){
+            self.showSearchBar(false);
+        }else{
+            self.showSearchBar(true);
+        }   
+    }
+    self.closeInfoWindows = function(){
+        self.livePlaces().forEach(function(e){
+            e.infoWindow.close()
+        })
+    }
+    self.closeMenus = function(){
+        self.closeInfoWindows();
+        self.showList(false);
+        self.showSearchBar(false);
+        self.streetViewDisplay(false);
+    }
+
+    // Starts running program
+    // Load map on page load
+    google.maps.event.addDomListener(window, 'load', initialize());
     
-    ko.applyBindings(new AppViewModel);
-//End document load
-})
+
+    // Request for google places
+    var $input = $(".input");
+    // Simulate instant search
+    // Listen for key input into place search, update list and map as user type
+    $input.keyup(function(e) {
+      var key = e.which;
+      var searchValue = $input.val();  
+      if(key === 13){
+        self.request.query = searchValue;
+        removeMarkers(self.livePlaces());
+        self.livePlaces.removeAll();
+        self.places.splice(0);
+        textSearchPlace(self.request);
+      }else{
+        updateSearchResult(searchValue);
+      }
+    });
+
+    // City search
+    var $cityInput = $(".city-input");
+    $cityInput.keyup(function(e){
+        var key = e.which;
+        var searchValue = $cityInput.val();
+        if(key === 13){
+            //TODO implement udpateCity
+            self.updateCity();
+        }
+    })
+
+
+// End of AppViewModel
+}
+
+ko.applyBindings(new AppViewModel);
+
+
+
+
