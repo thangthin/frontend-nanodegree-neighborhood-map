@@ -48,7 +48,7 @@ var AppViewModel = function() {
         if (status == google.maps.places.PlacesServiceStatus.OK){
             self.displayError(false);
             //show Places On map, markers, that have event listener
-            results.slice(0,15).forEach(function(e){
+            results.slice(0).forEach(function(e){
                 addMarker(e);
                 showMarker(e);
                 var formattedContent = infoWindowContent(e);
@@ -85,9 +85,9 @@ var AppViewModel = function() {
     }
     //Sets the content of the infowindow for place
     function infoWindowContent(np){
-        var content = "<h3>"+np.name+"</h3>";
+        var content = "<b>"+np.name+"</b><br>";
         if(np.formatted_address || np.vicinity){
-            content += (np.formatted_address ? np.formatted_address : np.vicinity);
+            content += (np.vicinity ? np.vicinity : np.formatted_address);
         }
         if(np.opening_hours){
             content += "<br>" + "Open Now: " + np.opening_hours.open_now;
@@ -105,7 +105,7 @@ var AppViewModel = function() {
             content += "<br>" + "Phone: " + np.formatted_phone_number;
         }
         if(np.photos){
-            content += "<br><img src='"+np.photos[0].getUrl({'maxWidth': 300, 'maxHeight': 200})+"' width=300 height=200>"; 
+            content += "<br><img src='"+np.photos[0].getUrl({'maxWidth': 250, 'maxHeight': 150})+"' width=250 height=150>"; 
         }
         return content;
     }
@@ -176,6 +176,10 @@ var AppViewModel = function() {
     //Event click listener callback
     self.animatePlace = function(place){
         //Update the appropriate observable
+        if($(window).width() < 400){
+            self.showList(false);
+            self.closeInfoWindows();
+        }
         self.currentPlace(place); //TODO - take this out, need for debugging only
         self.sv.getPanoramaByLocation(place.geometry.location, 50, processSVData);
         place.infoWindow.open(self.GMAP, place.marker);
@@ -257,7 +261,10 @@ var AppViewModel = function() {
     // Load map on page load
     google.maps.event.addDomListener(window, 'load', initialize());
     
-
+    //Adjust initial display if user is using mobile.
+    if($(window).width() < 400){
+        self.streetViewDisplay(false);
+    }
     // Request for google places
     var $input = $(".input");
     // Simulate instant search
@@ -271,6 +278,9 @@ var AppViewModel = function() {
         self.livePlaces.removeAll();
         self.places.splice(0);
         textSearchPlace(self.request);
+        if(!self.showList()){
+            self.showList(true);
+        }
       }else{
         updateSearchResult(searchValue);
       }

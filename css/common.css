@@ -40,14 +40,6 @@ html, body {
 	left: 0;
 }
 
-.place-list {
-	position: absolute;
-	z-index: 1;
-	top: 90px;
-	left: 0;
-	text-align: left;
-}
-
 .input-group {
 	max-width: 600px;
 	width: 70%;
@@ -56,6 +48,16 @@ html, body {
 
 h1 {
 	margin-bottom: 0;
+}
+
+.place-list {
+	position: absolute;
+	z-index: 2;
+	top: 90px;
+	left: 0;
+	text-align: left;
+	overflow: hidden;
+
 }
 
 .list-group-item {
@@ -67,17 +69,29 @@ h1 {
 	opacity: 1;
 	z-index: 3;
 	min-width: 60%;
+	background-color: rgb(255, 126, 0);;
 }
-
 
 #pano {
 	position: absolute;
-	z-index: 2;
-	right: 0;
-	top: 100px;
-	width: 45%;
+	z-index: 1;
+	left: 350px;
+	bottom: 0;
+	width: 50%;
 	height: 45%
 }
 
-
-
+@media screen and (max-width: 400px) {
+	.list-group {
+		max-height: 350px;
+		overflow-y: scroll;
+	}
+	#pano {
+		position: absolute;
+		z-index: 1;
+		left: 0;
+		bottom: 0;
+		width: 100%;
+		height: 45%
+	}
+}
