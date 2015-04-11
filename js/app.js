@@ -172,6 +172,9 @@ var AppViewModel = function() {
         var query = $('.input').val();
         self.request.query = query;
         textSearchPlace(self.request);
+        if(!self.showList()){
+            self.showList(true);
+        }
     }
     //Event click listener callback
     self.animatePlace = function(place){
@@ -210,7 +213,10 @@ var AppViewModel = function() {
                     self.request.location = new_city;
                     self.GMAP.setCenter(new_city);
                     self.sv.getPanoramaByLocation(new_city, 50, processSVData);
-                    textSearchPlace(self.request);   
+                    textSearchPlace(self.request);
+                    if(!self.showList()){
+                        self.showList(true);
+                    }
                 }else{
                     self.displayError(true);
                     self.errorMessage("Can't find new city");
@@ -294,6 +300,9 @@ var AppViewModel = function() {
         if(key === 13){
             //TODO implement udpateCity
             self.updateCity();
+            if(!self.showList()){
+                self.showList(true);
+            }
         }
     })
 
