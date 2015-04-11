@@ -188,7 +188,7 @@ var AppViewModel = function() {
             place.marker.setAnimation(null)
         },2000);
         //self.GMAP.setZoom(self.mapProperties.zoom);
-        self.GMAP.panTo(place.geometry.location);
+        // self.GMAP.panTo(place.geometry.location);
     };
     //update the city, click listener callback
     self.updateCity = function(){
