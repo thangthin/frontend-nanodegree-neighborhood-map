@@ -1,7 +1,6 @@
-
 // //Starts of appviewmodel
 var AppViewModel = function() {
-    "use strict"
+    "use strict";
     var self = this;
     function initialize(){
         self.city = {lat: 42.3601, lng: -71.0589},
@@ -9,7 +8,7 @@ var AppViewModel = function() {
                 center: new google.maps.LatLng(self.city.lat, self.city.lng),
                 zoom:17,
                 mapTypeId: google.maps.MapTypeId.ROADMAP
-            }
+            };
         self.GMAP = new google.maps.Map(document.getElementById("googleMap"),self.mapProperties);
         self.service = new google.maps.places.PlacesService(self.GMAP);
         self.places = [];
@@ -66,7 +65,7 @@ var AppViewModel = function() {
         var marker = new google.maps.Marker({
             position: np.geometry.location,
             map: self.GMAP
-        })
+        });
         np.marker = marker;
         google.maps.event.addListener(marker, 'click', function(){
             self.animatePlace(np);
@@ -146,12 +145,12 @@ var AppViewModel = function() {
     function removeMarkers(arr){
         arr.forEach(function(e){
             e.marker.setMap(null);
-        })
+        });
     }
     //update map markers and list based on user input on new search input field
     function updateSearchResult(searchValue){
         var pattern = new RegExp(searchValue,"gi");
-        self.livePlaces(self.places.slice(0))
+        self.livePlaces(self.places.slice(0));
         self.places.forEach(function(e){
             if(!e.name.match(pattern)){
                 e.marker.setMap(null);
@@ -159,7 +158,7 @@ var AppViewModel = function() {
             }else{
                 e.marker.setMap(self.GMAP);
             }
-        })
+        });
     }
     //update result based on result from text search (more convenient for users e.g 'burgers in boston' is acceptable)
     function textSearchPlace(request){
@@ -175,7 +174,7 @@ var AppViewModel = function() {
         if(!self.showList()){
             self.showList(true);
         }
-    }
+    };
     //Event click listener callback
     self.animatePlace = function(place){
         //Update the appropriate observable
@@ -188,7 +187,7 @@ var AppViewModel = function() {
         place.infoWindow.open(self.GMAP, place.marker);
         place.marker.setAnimation(google.maps.Animation.BOUNCE);
         setTimeout(function(){
-            place.marker.setAnimation(null)
+            place.marker.setAnimation(null);
         },2000);
         //self.GMAP.setZoom(self.mapProperties.zoom);
         // self.GMAP.panTo(place.geometry.location);
@@ -236,32 +235,32 @@ var AppViewModel = function() {
         }else{
             self.streetViewDisplay(true);
         }
-    }
+    };
     self.toggleShowList = function(){
         if(self.showList()){
             self.showList(false);
         }else{
             self.showList(true);
         }   
-    }
+    };
     self.toggleShowSearchBar = function(){
         if(self.showSearchBar()){
             self.showSearchBar(false);
         }else{
             self.showSearchBar(true);
         }   
-    }
+    };
     self.closeInfoWindows = function(){
         self.livePlaces().forEach(function(e){
-            e.infoWindow.close()
-        })
-    }
+            e.infoWindow.close();
+        });
+    };
     self.closeMenus = function(){
         self.closeInfoWindows();
         self.showList(false);
         self.showSearchBar(false);
         self.streetViewDisplay(false);
-    }
+    };
 
     // Starts running program
     // Load map on page load
@@ -296,7 +295,6 @@ var AppViewModel = function() {
     var $cityInput = $(".city-input");
     $cityInput.keyup(function(e){
         var key = e.which;
-        var searchValue = $cityInput.val();
         if(key === 13){
             //TODO implement udpateCity
             self.updateCity();
@@ -304,14 +302,10 @@ var AppViewModel = function() {
                 self.showList(true);
             }
         }
-    })
+    });
 
 
 // End of AppViewModel
-}
+};
 
-ko.applyBindings(new AppViewModel);
-
-
-
-
+ko.applyBindings(new AppViewModel());
