@@ -60,7 +60,7 @@
     </div>
   </div>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
-  <script type="text/javascript" src='build/js/all.min.js'></script>
+  <script type="text/javascript" src='dist/all.js'></script>
   </body>
 
 </html>
