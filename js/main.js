@@ -89,7 +89,7 @@ var AppViewModel = function() {
             content += (np.vicinity ? np.vicinity : np.formatted_address);
         }
         if(np.opening_hours){
-            content += "<br>" + "Open Now: " + (np.opening_hours.open_now ? "Yes" : "No");
+            content += "<br>" + "Open Now: " + np.opening_hours.open_now;
         }
         if(np.rating){
             content += "<br>" + "Rating: " + np.rating;
