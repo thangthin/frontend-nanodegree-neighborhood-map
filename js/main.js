@@ -3,7 +3,7 @@ var AppViewModel = function() {
     "use strict";
     var self = this;
     function initialize(){
-        self.city = {lat: 42.3601, lng: -71.0589},
+        self.city = {lat: 49.24966, lng: -123.11934},
         self.mapProperties = {
                 center: new google.maps.LatLng(self.city.lat, self.city.lng),
                 zoom:17,

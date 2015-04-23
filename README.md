@@ -5,7 +5,7 @@ http://thangthin.github.io/frontend-nanodegree-neighborhood-map/
 
 Neighborhood map is a web application that lists out popular places
 recommended by google based upon user input search. 
- --The map is prepopulated with a nearby search of user's input city (default 	city for now is Boston, MA).
+ --The map is prepopulated with a nearby search of user's input city (default 	city for now is Vancouver, BC, Canada).
  --User can modify places displayed on map by submitting a new search value
    for the place search.
  --User can also update the city by searching for new city.
